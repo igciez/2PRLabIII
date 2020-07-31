@@ -26,165 +26,19 @@ let arrayData = [
     { name: 'Potencia', class: 'potenciaThTd', otherName: 'potencia' }
 ];
 
-/**
- * Ajax Traer
- */
-const traerAjax = async () => {
-    let xhr = new XMLHttpRequest();
-    gif.style.visibility = 'visible';
-
-    xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4) {
-            gif.style.visibility = 'hidden';
-            if (xhr.status === 200) {
-                let auxAnuncios = JSON.parse(xhr.responseText).data;
-                anuncios = auxAnuncios.map(item => new Anuncio_Auto(item));
-                taerLocal();
-                agregarRowTableTh(arrayData);
-                agregarRowTableTd(anuncios);
-            } else {
-                console.log(xhr.status + " " + xhr.statusText);
-            }
-        }
-    };
-    xhr.open('GET', 'http://localhost:3000/traer', true);
-    xhr.send();
-}
-
-/***
- * Ajax Alta
- */
-// const altaAjax = async (item) => {
-//     let xhr = new XMLHttpRequest();
-//     gif.style.visibility = 'visible';
-
-//     xhr.onreadystatechange = () => {
-//         if (xhr.readyState === 4) {
-//             gif.style.visibility = 'hidden';
-//             if (xhr.status === 200) {
-//                 console.log(JSON.parse(xhr.responseText))
-//             } else {
-//                 console.log(xhr.status + " " + xhr.statusText);
-//             }
-//         }
-//     };
-//     xhr.open('POST', 'http://localhost:3000/alta');
-//     xhr.setRequestHeader("Content-Type", "application/json");
-//     xhr.send(JSON.stringify(item));
-// }
-
-/***
- * Ajax modificar
- */
-const modificarAjax = async (item) => {
-    let xhr = new XMLHttpRequest();
-    gif.style.visibility = 'visible';
-
-    xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4) {
-            gif.style.visibility = 'hidden';
-            if (xhr.status === 200) {
-                console.log(JSON.parse(xhr.responseText))
-            } else {
-                console.log(xhr.status + " " + xhr.statusText);
-            }
-        }
-    };
-    xhr.open('POST', 'http://localhost:3000/modificar');
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.send(JSON.stringify(item));
-    console.dir(JSON.stringify(item))
-}
-
-/***
- * Ajax baja
- */
-// const bajaAjax = async (id) => {
-//     let xhr = new XMLHttpRequest();
-
-//     xhr.onreadystatechange = () => {
-//         if (xhr.readyState === 4) {
-
-//             if (xhr.status === 200) {
-//                 console.log(JSON.parse(xhr.responseText))
-//             } else {
-//                 console.log(xhr.status + " " + xhr.statusText);
-//             }
-//         }
-//     };
-//     xhr.open('POST', 'http://localhost:3000/baja');
-//     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-//     xhr.send(`id=${id}`);
-// }
-
-///------!!!JQUERY!!!!!-------
-// ---> Selector --> $("#btnBaja").click(function(){}
-//$("#checkboxDiv").find(".custom-control").length
-/**
- * Jquery Baja
- */
-function bajaAjax(id) {
-
-    $.ajax({
-        url: "http://localhost:3000/baja",
-        method: 'POST',
-        data: `id=${id}`,
-        contentType: 'application/x-www-form-urlencoded',
-        success: function (resultado) {
-            console.log(JSON.parse(resultado).message);
-        },
-        error: function () {
-            console.log("Error");
-        },
-        complete: function () {
-            console.log("Complete");
-            alert('Baja exitosa');
-            //location.reload();
-        }
-    })
-}
-
-/**
- * Alta Jquery
- * @param {*} item 
- */
-function altaAjax(item) {
-    gif.style.visibility = 'visible';
-
-    $.ajax({
-        url: "http://localhost:3000/alta",
-        method: 'POST',
-        data: JSON.stringify(item),
-        contentType: 'application/json',
-        success: function (resultado) {
-            gif.style.visibility = 'hidden';
-            console.log(JSON.parse(resultado).message);
-        },
-        error: function () {
-            console.log("Error");
-        },
-        complete: function () {
-            gif.style.visibility = 'hidden';
-            console.log("Complete");
-            //alert('Baja exitosa');
-            //location.reload();
-        }
-    })
-}
-
 //----Local Storage-----
 const taerLocal = () => {
     let auxFiltros = JSON.parse(localStorage.getItem('listaAnuncios'));
     filtroCheckPref = auxFiltros;
 
     if (auxFiltros) {
-        console.dir(auxFiltros)
-        auxFiltros.forEach(item => {
-            console.dir(item.checked)
-            //document.getElementById(item.nameId).checked = item.checked;
-            document.getElementById(item.nameId).checked = false;
-        });
+        if (auxFiltros.length) {
+            auxFiltros.forEach(item => {
+                document.getElementById(item.nameId).checked = false;
+            });
+        }
     }
+
 };
 
 const altaLocal = (array) => {
@@ -197,7 +51,6 @@ const altaLocal = (array) => {
 const traerLocalStorage = () => {
     let auxAnuncios = JSON.parse(localStorage.getItem('anuncios'));
     if (auxAnuncios) {
-        console.dir(auxAnuncios)
         anuncios = auxAnuncios.map(item => new Anuncio_Auto(item));
         taerLocal();
         agregarRowTableTh(arrayData);
@@ -219,10 +72,9 @@ const altaLocalStorage = (item) => {
 
 const bajaLocalStorage = (id) => {
     let auxAnuncio = anuncios.filter(item => item.id !== (id).toString());
-    console.dir(auxAnuncio)
     localStorage.setItem('anuncios', JSON.stringify(auxAnuncio));
-    //location.reload()
-    table.deleteRow(indiceRow)
+    //table.deleteRow(indiceRow)
+    location.reload()
 };
 
 const modificLocalStorage = (item) => {
@@ -311,6 +163,7 @@ const modifyfiltroTransaccion = (event) => {
 
         Object.values(anuncios).forEach(anuncio => {
             if (anuncio.transaccion === event.target.value) {
+                loadPromedioPotencia(event.target.value);
                 let tr = document.createElement("tr");
                 tr.setAttribute('onclick', "setIndex(this)");
                 precioAux += parseInt(anuncio.precio);
@@ -331,6 +184,13 @@ const modifyfiltroTransaccion = (event) => {
                         array.forEach(item => {
                             let td = document.createElement('td');
                             td.innerHTML = anuncio[item];
+                            tr.appendChild(td)
+                        })
+                    }
+                    else {
+                        Object.values(anuncio).forEach(item => {
+                            let td = document.createElement('td');
+                            td.innerHTML = item;
                             tr.appendChild(td)
                         })
                     }
@@ -370,7 +230,7 @@ const agregarRowTableTh = (element) => {
     else {
         array = element;
     }
-    console.dir(array)
+
     array.forEach((item) => {
         let th = document.createElement('th');
         let icon = document.createElement("i");
@@ -393,7 +253,6 @@ const agregarRowTableTd = (anuncios, arrayData) => {
 
     if (arrayData) {
         let auxArrayData;
-
         if (filtroCheckPref) {
             if (filtroCheckPref.length) {
                 filtroCheckPref.forEach(field => {
@@ -438,13 +297,23 @@ const agregarRowTableTd = (anuncios, arrayData) => {
                         }
                     })
                     array.forEach(item => {
+
                         let td = document.createElement('td');
                         td.innerHTML = anuncio[item];
                         tr.appendChild(td)
                     })
                 }
+                else {
+                    Object.values(anuncio).forEach(item => {
+
+                        let td = document.createElement('td');
+                        td.innerHTML = item;
+                        tr.appendChild(td)
+                    })
+                }
             } else {
                 Object.values(anuncio).forEach(item => {
+
                     let td = document.createElement('td');
                     td.innerHTML = item;
                     tr.appendChild(td)
@@ -561,9 +430,37 @@ function sortTable() {
     );
 }
 
+function loadPromedioPotencia(values) {
+    let inputPromedio = document.getElementById('promedioPotencia');
+    const promedio = anuncios
+        .filter(item=> item.transaccion === values)
+        .map((item) => item.potencia)
+        .reduce(function (promedio, potencia, _, { length }) {
+            return promedio + potencia / length;
+        }, 0);
+    inputPromedio.value = promedio.toFixed(2);
+}
+
+function loadMaxPrecio() {
+    let maximo = 0;
+    let inputPromedio = document.getElementById('maxPrecio');
+    maximo = Math.max.apply(Math, anuncios.map(function (o) { return o.precio; }))
+    inputPromedio.value = maximo.toFixed(2);
+}
+
+function loadMinPrecio() {
+    let minimo = 0;
+    let inputPromedio = document.getElementById('minPotencia');
+    minimo = Math.min.apply(Math, anuncios.map(function (o) { return o.precio; }))
+    inputPromedio.value = minimo.toFixed(2);
+}
+
 // Funcion de inicio
 (() => {
     llenarFiltros('transaccion')
     llenarFiltros('idFiltrarTransaccion')
     traerLocalStorage();
+    loadMaxPrecio();
+    loadMinPrecio();
 })()
+
